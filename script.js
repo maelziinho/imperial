@@ -246,7 +246,7 @@ const produtos = [
         imagem: "images/jeri250ml.png",
         categoria: "Hambúrgueres",
         subcategoria: "Combos"
-    }
+    },
 ];
 
 // Função para exibir a página inicial (Menu, Carrossel e Destaques)
@@ -262,6 +262,12 @@ function showInicio() {
     document.getElementById('cartDetails').style.display = 'none';
     loadDestaqueProducts(); // Carrega os produtos em destaque
 }
+
+// Função para exibir/ocultar o menu de categorias em dispositivos móveis
+document.getElementById('menuToggle').addEventListener('click', function () {
+    const categorias = document.getElementById('categorias');
+    categorias.classList.toggle('active');
+});
 
 // Função para carregar os produtos em destaque
 function loadDestaqueProducts() {
@@ -422,7 +428,7 @@ function updateCart(deliveryFee = 0) {
     const cartTotalContainer = document.getElementById('cartTotal');
     const cartCount = document.getElementById('cartCount');
     cartItemsContainer.innerHTML = ''; // Limpa o conteúdo atual do carrinho
-    let total = calcularTotal();
+    let total = 0;
 
     // Itera sobre cada item no carrinho
     cart.forEach(item => {
@@ -448,6 +454,7 @@ function updateCart(deliveryFee = 0) {
         } else {
             // Para outros produtos, cobra normalmente
             itemName.textContent = `${item.nome} - R$ ${(price * item.quantity).toFixed(2)} (${item.quantity}x)`;
+            total += price * item.quantity;
         }
 
         cartItemDiv.appendChild(itemName);
@@ -532,13 +539,17 @@ function toggleCart() {
 // Função para lidar com a mudança na opção de entrega
 function handleDeliveryOptionChange(option) {
     const locationOption = document.getElementById('locationOption');
+    const locationSelect = document.getElementById('locationSelect');
     const customerNameInput = document.getElementById('customerName');
+
     if (option === 'Delivery') {
         locationOption.style.display = 'block';
     } else {
         locationOption.style.display = 'none';
-        updateCart(); // Atualizar o carrinho para remover a taxa de entrega
+        locationSelect.value = ''; // Reseta a seleção de localização
+        updateCart(); // Atualiza o carrinho para remover a taxa de entrega
     }
+
     customerNameInput.style.display = 'block';
 }
 
@@ -575,6 +586,17 @@ function checkPaymentOption() {
 function finalizeOrder() {
     if (cart.length === 0) {
         alert("Por favor, adicione pelo menos um produto ao carrinho.");
+        return;
+    }
+
+    // Verifica se há apenas itens gratuitos no carrinho
+    const apenasItensGratuitos = cart.every(item => {
+        return (item.nome === 'Ketchup' && item.quantity <= ketchupGratuito) ||
+               (item.nome === 'Maionese' && item.quantity <= maioneseGratuita);
+    });
+
+    if (apenasItensGratuitos) {
+        alert("Adicione pelo menos um item válido ao carrinho para finalizar o pedido.");
         return;
     }
 
